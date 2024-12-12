@@ -50,7 +50,16 @@ class MyHomePageState extends State<MyHomePage> {
     for (var pizza in pizzaMapList) {
       pizzas.add(Pizza.fromJson(pizza)); // Konversi Map menjadi objek Pizza
     }
+
+    // Konversi daftar pizza ke JSON dan cetak ke konsol
+    String json = convertToJSON(pizzas);
+    print(json);
+
     return pizzas;
+  }
+
+  String convertToJSON(List<Pizza> pizzas) {
+    return jsonEncode(pizzas.map((pizza) => pizza.toJson()).toList());
   }
 
   @override
