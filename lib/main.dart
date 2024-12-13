@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './pizza.dart';
 
 void main() {
@@ -31,6 +32,7 @@ class MyHomePage extends StatefulWidget {
 
 class MyHomePageState extends State<MyHomePage> {
   List<Pizza> myPizzas = []; // List untuk menyimpan objek Pizza
+  int appCounter = 0; // Counter untuk tracking jumlah membuka aplikasi
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class MyHomePageState extends State<MyHomePage> {
         myPizzas = value;
       });
     });
+    readAndWritePreference(); // Memanggil SharedPreferences saat initState
   }
 
   Future<List<Pizza>> readJsonFile() async {
@@ -58,6 +61,24 @@ class MyHomePageState extends State<MyHomePage> {
     return pizzas;
   }
 
+  Future readAndWritePreference() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    appCounter = prefs.getInt('appCounter') ?? 0;
+    appCounter++;
+    await prefs.setInt('appCounter', appCounter);
+    setState(() {
+      appCounter = appCounter;
+    });
+  }
+
+  Future deletePreference() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    setState(() {
+      appCounter = 0;
+    });
+  }
+
   String convertToJSON(List<Pizza> pizzas) {
     return jsonEncode(pizzas.map((pizza) => pizza.toJson()).toList());
   }
@@ -74,16 +95,35 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         backgroundColor: Colors.blue, // Warna seluruh latar belakang AppBar
       ),
-      body: ListView.builder(
-        itemCount: myPizzas.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(myPizzas[index].pizzaName),
-            subtitle: Text(
-              '${myPizzas[index].description} - €${myPizzas[index].price.toStringAsFixed(2)}',
-            ),
-          );
-        },
+      body: Container(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                  'You have opened the app $appCounter times.'),
+              ElevatedButton(
+                onPressed: () {
+                  deletePreference();
+                },
+                child: Text('Reset counter'),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: myPizzas.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(myPizzas[index].pizzaName),
+                      subtitle: Text(
+                        '${myPizzas[index].description} - €${myPizzas[index].price.toStringAsFixed(2)}',
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
